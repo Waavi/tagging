@@ -1,5 +1,7 @@
 <?php namespace Waavi\Tagging\Traits;
 
+use Illuminate\Config\Repository as Config;
+
 class TaggableObserver
 {
     /**
@@ -10,15 +12,9 @@ class TaggableObserver
      */
     public function saved($model)
     {
-        // $translationRepository = \App::make(TranslationRepository::class);
-        // $cacheRepository       = \App::make('translation.cache.repository');
-        // foreach ($model->translatableAttributes() as $attribute) {
-        //     // If the value of the translatable attribute has changed:
-        //     if ($model->isDirty($attribute)) {
-        //         $translationRepository->updateDefaultByCode($model->translationCodeFor($attribute), $model->getRawAttribute($attribute));
-        //     }
-        // }
-        // $cacheRepository->flush(config('app.locale'), 'translatable', '*');
+        if (!$this->exists) {
+            $this->addTags($taggingTags);
+        }
     }
 
     /**
@@ -29,9 +25,9 @@ class TaggableObserver
      */
     public function deleted($model)
     {
-        // $translationRepository = \App::make(TranslationRepository::class);
-        // foreach ($model->translatableAttributes() as $attribute) {
-        //     $translationRepository->deleteByCode($model->translationCodeFor($attribute));
-        // }
+        if (!$this->exists and Config::get('tagging.untag_on_delete')) {
+            $this->removeAllTags();
+        }
+
     }
 }
