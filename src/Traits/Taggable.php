@@ -1,6 +1,9 @@
 <?php namespace Waavi\Tagging\Traits;
 
 use Illuminate\Config\Repository as Config;
+use Illuminate\Support\Facades\Event;
+use Waavi\Tagging\Events\TagAdded;
+use Waavi\Tagging\Events\TagRemoved;
 use Waavi\Tagging\Models\Tag;
 use Waavi\Tagging\Repositories\TagRepository;
 
@@ -43,7 +46,7 @@ trait Taggable
             $tag           = $tagRepository->findOrCreate($tagName);
             $this->tags()->attach($tag->id);
             $tag->increment();
-            // Launch event;
+            Event::fire(new TagAdded($this));
         }
     }
 
@@ -52,9 +55,9 @@ trait Taggable
      *
      * @param $tagName string
      */
-    private function addTags($tagNamesArray)
+    private function addTags($tagNames)
     {
-        foreach ($tagNamesArray as $tagName) {
+        foreach ($tagNames as $tagName) {
             $this->addTag($tagName);
         }
     }
@@ -64,10 +67,19 @@ trait Taggable
      *
      * @param $tagName string
      */
-    private function syncTags($tagNamesArray)
+    private function syncTags($tagNames)
     {
-        // Si no existe, sustituir array temporal
-        // Si existe, remove todos los tags y añadir los del array. Comprobar la diferencia entre los que hay y los que quiers meter y borrar y meter solo los necesarios.
+        if (!$this->exists) {
+            $this->taggingTags = $tagNames;
+        } else {
+            $currentTagNames = $this->tags->map(function ($item) {
+                return $item->name;
+            })->toArray();
+            $deletions = array_diff($currentTagNames, $tagNames);
+            $additions = array_diff($tagNames, $currentTagNames);
+            $this->removeTags($deletions);
+            $this->addTags($additions);
+        }
     }
 
     /**
@@ -90,7 +102,7 @@ trait Taggable
                 if (Config::get('tagging.delete_unused_tags')) {
                     Tag::deleteUnused();
                 }
-                // Launch event;
+                Event::fire(new TagRemoved($this));
             }
         }
     }
@@ -110,9 +122,9 @@ trait Taggable
      *
      * @param $tagName string
      */
-    private function removeTags($tagNamesArray)
+    private function removeTags($tagNames)
     {
-        foreach ($tagNamesArray as $tagName) {
+        foreach ($tagNames as $tagName) {
             $this->removeTag($tagName);
         }
     }
