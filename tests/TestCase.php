@@ -3,9 +3,15 @@
 namespace Waavi\Tagging\Test;
 
 use Orchestra\Testbench\TestCase as Orchestra;
+use Waavi\Translation\Repositories\LanguageRepository;
 
 abstract class TestCase extends Orchestra
 {
+    public function setUp()
+    {
+        parent::setUp();
+        $this->setUpDatabase($this->app);
+    }
     /**
      * @param \Illuminate\Foundation\Application $app
      *
@@ -15,14 +21,22 @@ abstract class TestCase extends Orchestra
     {
         return [
             \Waavi\Tagging\TaggingServiceProvider::class,
+            \Waavi\Translation\TranslationServiceProvider::class,
+            \Cviebrock\EloquentSluggable\SluggableServiceProvider::class,
         ];
     }
 
-    protected function getPackageAliases($app)
+    /**
+     * @param \Illuminate\Foundation\Application $app
+     */
+    protected function setUpDatabase($app)
     {
-        return [
-            // 'UrlShortener' => \Waavi\UrlShortener\Facades\UrlShortener::class,
-        ];
+        $this->artisan('migrate', ['--realpath' => realpath(__DIR__ . '/../database/migrations')]);
+        $this->artisan('migrate', ['--realpath' => realpath(__DIR__ . '/../vendor/waavi/translation/database/migrations')]);
+        // Seed the spanish and english languages
+        $languageRepository = \App::make(LanguageRepository::class);
+        $languageRepository->create(['locale' => 'en', 'name' => 'English']);
+        $languageRepository->create(['locale' => 'es', 'name' => 'Spanish']);
     }
 
     /**

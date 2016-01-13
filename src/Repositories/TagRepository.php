@@ -1,6 +1,8 @@
 <?php namespace Waavi\Tagging\Repositories;
 
+use Illuminate\Support\Str;
 use Illuminate\Validation\Factory as Validator;
+use Waavi\Tagging\Contracts\TagInterface;
 
 class TagRepository extends Repository
 {

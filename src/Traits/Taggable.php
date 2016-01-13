@@ -2,8 +2,8 @@
 
 trait Taggable
 {
-    protected $tagsToAdd    = [];
-    protected $tagsToRemove = [];
+    public $tagsToAdd    = [];
+    public $tagsToRemove = [];
 
     /**
      *  Register Model observer.

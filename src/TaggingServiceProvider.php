@@ -26,9 +26,6 @@ class TaggingServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../database/migrations/' => database_path('migrations'),
         ], 'migrations');
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/tagging.php', 'tagging'
-        );
     }
 
     /**
@@ -38,11 +35,9 @@ class TaggingServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // $this->app->singleton('urlshortener.factory', Drivers\Factory::class);
-        // $this->app->singleton('urlshortener', function ($app) {
-        //     $shortener = new UrlShortener($app['urlshortener.factory']);
-        //     $shortener->setDriver($app['config']->get('urlshortener.driver'));
-        //     return $shortener;
-        // });
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/tagging.php', 'tagging'
+        );
+        $this->app->bind(Contracts\TagInterface::class, config('tagging.model'));
     }
 }

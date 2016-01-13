@@ -8,7 +8,16 @@ use Waavi\Translation\Traits\Translatable;
 
 class Tag extends Model implements SluggableInterface, TagInterface
 {
-    //Traits
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
+     * Traits
+     */
     use Translatable;
     use SluggableTrait;
 
@@ -17,7 +26,7 @@ class Tag extends Model implements SluggableInterface, TagInterface
     public $fillable = ['name'];
 
     protected $sluggable = [
-        'build_from' => 'name',
+        'build_from' => 'rawName',
         'save_to'    => 'slug',
     ];
 
@@ -28,16 +37,4 @@ class Tag extends Model implements SluggableInterface, TagInterface
      *  @var array
      */
     protected $translatableAttributes = ['name'];
-
-    public function increment()
-    {
-        $this->count++;
-        return $this;
-    }
-
-    public function decrement()
-    {
-        $this->count--;
-        return $this;
-    }
 }

@@ -2,7 +2,4 @@
 
 interface TagInterface
 {
-    public function increment();
-
-    public function decrement();
 }
