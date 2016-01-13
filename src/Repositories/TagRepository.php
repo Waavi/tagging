@@ -1,8 +1,6 @@
 <?php namespace Waavi\Tagging\Repositories;
 
-use Illuminate\Config\Repository as Config;
 use Illuminate\Validation\Factory as Validator;
-use Waavi\Tagging\Models\Tag;
 
 class TagRepository extends Repository
 {
@@ -26,25 +24,16 @@ class TagRepository extends Repository
      *  @var \Illuminate\Support\MessageBag
      */
     protected $errors;
-
-    /**
-     *  Config repository.
-     *
-     *  @var Config
-     */
-    protected $config;
-
     /**
      *  Constructor
      *  @param  \Waavi\Tagging\Models\Tag      $model  Bade model for queries.
      *  @param  \Illuminate\Validation\Validator        $validator  Validator factory
      *  @return void
      */
-    public function __construct(Tag $model, Validator $validator, Config $config)
+    public function __construct(TagInterface $model, Validator $validator)
     {
         $this->model     = $model;
         $this->validator = $validator;
-        $this->config    = $config;
     }
 
     /**
@@ -67,7 +56,7 @@ class TagRepository extends Repository
      */
     public function create(array $attributes)
     {
-        return $this->validate($attributes) ? Tag::create($attributes) : null;
+        return $this->validate($attributes) ? $this->model->create($attributes) : null;
     }
 
     /**
@@ -85,9 +74,9 @@ class TagRepository extends Repository
             if ($this->validate(['name' => $name])) {
                 return false;
             }
-            $tag = Tag::create($attributes);
+            $tag = $this->create($attributes);
         }
-        return $this->validate($attributes) ? Tag::create($attributes) : null;
+        return $this->validate($attributes) ? $this->model->create($attributes) : null;
     }
 
     /**
@@ -119,7 +108,7 @@ class TagRepository extends Repository
      */
     public function update(array $attributes)
     {
-        return $this->validate($attributes) ? (boolean) Tag::where('id', $attributes['id'])->update($attributes) : false;
+        return $this->validate($attributes) ? (boolean) $this->model->where('id', $attributes['id'])->update($attributes) : false;
     }
 
     /**
@@ -149,5 +138,15 @@ class TagRepository extends Repository
     public function validationErrors()
     {
         return $this->errors;
+    }
+
+    /**
+     * Look at the tags table and delete any tags that are no londer in use by any taggable database rows.
+     *
+     * @return int
+     */
+    public function deleteUnused()
+    {
+        return $this->model->where('count', '=', 0)->delete();
     }
 }

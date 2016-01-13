@@ -1,15 +1,9 @@
 <?php namespace Waavi\Tagging\Traits;
 
-use Illuminate\Config\Repository as Config;
-use Illuminate\Support\Facades\Event;
-use Waavi\Tagging\Events\TagAdded;
-use Waavi\Tagging\Events\TagRemoved;
-use Waavi\Tagging\Models\Tag;
-use Waavi\Tagging\Repositories\TagRepository;
-
 trait Taggable
 {
-    protected $taggingTags = [];
+    protected $tagsToAdd    = [];
+    protected $tagsToRemove = [];
 
     /**
      *  Register Model observer.
@@ -28,7 +22,8 @@ trait Taggable
      */
     public function tags()
     {
-        return $this->morphMany('Waavi\Tagging\Models\Tag', 'taggable');
+        $model = config('tagging.model');
+        return $this->morphMany($model, 'taggable');
     }
 
     /**
@@ -36,18 +31,9 @@ trait Taggable
      *
      * @param $tagName string
      */
-    private function addTag($tagName)
+    public function addTag($tagName)
     {
-        $tagName = trim($tagName);
-        if (!$this->exists) {
-            array_push($this->taggingTags, $tagName);
-        } else {
-            $tagRepository = \App::make(TagRepository::class);
-            $tag           = $tagRepository->findOrCreate($tagName);
-            $this->tags()->attach($tag->id);
-            $tag->increment();
-            Event::fire(new TagAdded($this));
-        }
+        array_push($this->taggingToAdd, $tagName);
     }
 
     /**
@@ -55,31 +41,29 @@ trait Taggable
      *
      * @param $tagName string
      */
-    private function addTags($tagNames)
+    public function addTags($tagNames)
     {
+        $tagNames = $this->tagsToArray($tagNames);
         foreach ($tagNames as $tagName) {
             $this->addTag($tagName);
         }
     }
 
     /**
-     * Sync a multiple tags
+     * Set tags
      *
      * @param $tagName string
      */
-    private function syncTags($tagNames)
+    public function setTags($tagNames)
     {
-        if (!$this->exists) {
-            $this->taggingTags = $tagNames;
-        } else {
-            $currentTagNames = $this->tags->map(function ($item) {
-                return $item->name;
-            })->toArray();
-            $deletions = array_diff($currentTagNames, $tagNames);
-            $additions = array_diff($tagNames, $currentTagNames);
-            $this->removeTags($deletions);
-            $this->addTags($additions);
-        }
+        $tagNames        = $this->tagsToArray($tagNames);
+        $currentTagNames = $this->tags->map(function ($item) {
+            return $item->name;
+        })->toArray();
+        $deletions = array_diff($currentTagNames, $tagNames);
+        $additions = array_diff($tagNames, $currentTagNames);
+        $this->removeTags($deletions);
+        $this->addTags($additions);
     }
 
     /**
@@ -87,33 +71,21 @@ trait Taggable
      *
      * @param $tagName string
      */
-    private function removeTag($tagName)
+    public function removeTag($tagName)
     {
-        $tagName = trim($tagName);
-
-        if (!$this->exists) {
-            $this->taggingTags = array_diff($this->taggingTags, [$tagName]);
-        } else {
-            $tagRepository = \App::make(TagRepository::class);
-            $tag           = $tagRepository->findByName($tagName);
-            if ($tag) {
-                $this->tags()->dettach($tag->id);
-                $tag->decrement();
-                if (Config::get('tagging.delete_unused_tags')) {
-                    Tag::deleteUnused();
-                }
-                Event::fire(new TagRemoved($this));
-            }
-        }
+        array_push($this->tagsToRemove, $tagName);
     }
 
     /**
-     * Remove a model tags
+     * Remove all tags
      *
      * @param $tagName string
      */
-    private function removeAllTags()
+    public function removeAllTags()
     {
+        $this->tags->each(function ($tag) {
+            $tag->decrement()->save();
+        });
         $this->tags()->dettach();
     }
 
@@ -122,11 +94,32 @@ trait Taggable
      *
      * @param $tagName string
      */
-    private function removeTags($tagNames)
+    public function removeTags($tagNames)
     {
+        $tagNames = $this->tagsToArray($tagNames);
         foreach ($tagNames as $tagName) {
             $this->removeTag($tagName);
         }
     }
 
+    /**
+     * Converts input into array
+     *
+     * @param $tagNames string or array
+     * @return array
+     */
+    private function tagsToArray($tagNames)
+    {
+        if (is_string($tagNames)) {
+            $tagNames = explode(',', $tagNames);
+        }
+
+        if (!is_array($tagNames)) {
+            return [];
+        }
+
+        $tagNames = reset($tagNames);
+        $tagNames = array_map('trim', $tagNames);
+        return array_values($tagNames);
+    }
 }
