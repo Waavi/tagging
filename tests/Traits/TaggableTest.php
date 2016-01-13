@@ -27,6 +27,8 @@ class TaggableTest extends TestCase
      */
     public function it_saves_a_tag()
     {
-        return false;
+        $this->post->addTag($this->tag1->rawName)->save();
+        $this->assertEquals(3, Tag::count());
+        $this->assertEquals(1, $this->post->tags->count());
     }
 }
