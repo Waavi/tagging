@@ -32,7 +32,55 @@ If you not use Eloquent-Sluggable(https://github.com/cviebrock/eloquent-sluggabl
     Cviebrock\EloquentSluggable\SluggableServiceProvider::class,
     Waavi\Translation\TranslationServiceProvider::class,    
 
-Publish the configuration file:
+Publish the configuration file and run the migrations:
 
     php artisan vendor:publish --provider="Waavi\Tagging\TaggingServiceProvider"
+    php artisan migrate
 
+Now you can edit config/tagging.php with your settings.
+
+## Usage
+
+### Eloquent Models
+
+Your models should implement Taggable's interface and use it's trait:
+
+    use Waavi\Tagging\Contracts\TaggableInterface;
+    use Waavi\Tagging\Traits\Taggable;
+
+    class Post extends Model implements TaggableInterface
+    {
+        use Taggable;
+    } 
+
+### Model Repositories
+
+Your repostories should extends of 'Waavi\Tagging\Repositories\Repository' implement TaggableRepository's interface and use it's trait:
+
+    use Waavi\Tagging\Contracts\TaggableRepositoryInterface;
+    use Waavi\Tagging\Repositories\Repository;
+    use PostModel;
+    use Waavi\Tagging\Traits\TaggableRepository;
+
+    class PostRepository extends Repository implements TaggableRepositoryInterface
+    {
+        use TaggableRepository;
+
+        /**
+         * The model being queried.
+         *
+         * @var PostModel
+         */
+        protected $model;
+
+        /**
+         *  Constructor
+         *  @param  PostModel      $model  Bade model for queries.
+         *  @param  \Illuminate\Validation\Validator        $validator  Validator factory
+         *  @return void
+         */
+        public function __construct(PostModel $model)
+        {
+            $this->model = $model;
+        }
+    }

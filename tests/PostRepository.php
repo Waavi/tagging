@@ -12,13 +12,13 @@ class PostRepository extends Repository implements TaggableRepositoryInterface
     /**
      * The model being queried.
      *
-     * @var \Waavi\Tagging\Models\Tag
+     * @var \Waavi\Tagging\Test\Post
      */
     protected $model;
 
     /**
      *  Constructor
-     *  @param  \Waavi\Tagging\Models\Tag      $model  Bade model for queries.
+     *  @param  \Waavi\Tagging\Test\Post      $model  Bade model for queries.
      *  @param  \Illuminate\Validation\Validator        $validator  Validator factory
      *  @return void
      */
