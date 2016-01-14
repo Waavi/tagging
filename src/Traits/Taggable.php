@@ -1,5 +1,7 @@
 <?php namespace Waavi\Tagging\Traits;
 
+use Illuminate\Support\Str;
+
 trait Taggable
 {
     public $tagsToAdd    = [];
@@ -16,30 +18,67 @@ trait Taggable
     }
 
     /**
-     * Return collection of tagged rows related to the tagged model
+     * Return collection of tags
      *
      * @return Illuminate\Database\Eloquent\Collection
      */
     public function tags()
     {
         $model = config('tagging.model');
-        return $this->morphMany($model, 'taggable');
+        return $this->morphToMany($model, 'tagging_taggable');
+    }
+
+    /**
+     * Filter model to subset with all given tags
+     *
+     * @param array or string $tagNames
+     */
+    public function scopeWithAllTags($query, $tagNames)
+    {
+        $tagNames = $this->tagsToArray($tagNames);
+        $tagSlugs = $this->tagsNamesToTagSlugs($tagNames);
+
+        $query->where(function ($q) use ($tagSlugs) {
+            foreach ($tagSlugs as $tagSlug) {
+                $q->whereHas('tags', function ($q) use ($tagSlug) {
+                    $q->where('slug', $tagSlug);
+                });
+            }
+        });
+
+        return $query;
+    }
+
+    /**
+     * Filter model to subset with any given tags
+     *
+     * @param array or string $tagNames
+     */
+    public function scopeWithAnyTag($query, $tagNames)
+    {
+        $tagNames = $this->tagsToArray($tagNames);
+        $tagSlugs = $this->tagsNamesToTagSlugs($tagNames);
+
+        return $query->whereHas('tags', function ($q) use ($tagSlugs) {
+            $q->whereIn('slug', $tagSlugs);
+        });
     }
 
     /**
      * Adds a single tag
      *
-     * @param $tagName string
+     * @param string $tagName
      */
     public function addTag($tagName)
     {
-        array_push($this->taggingToAdd, $tagName);
+        array_push($this->tagsToAdd, $tagName);
+        return $this;
     }
 
     /**
      * Adds a multiple tags
      *
-     * @param $tagName string
+     * @param array or string $tagNames
      */
     public function addTags($tagNames)
     {
@@ -47,12 +86,13 @@ trait Taggable
         foreach ($tagNames as $tagName) {
             $this->addTag($tagName);
         }
+        return $this;
     }
 
     /**
      * Set tags
      *
-     * @param $tagName string
+     * @param array or string $tagNames
      */
     public function setTags($tagNames)
     {
@@ -64,35 +104,37 @@ trait Taggable
         $additions = array_diff($tagNames, $currentTagNames);
         $this->removeTags($deletions);
         $this->addTags($additions);
+        return $this;
     }
 
     /**
      * Removes a single tag
      *
-     * @param $tagName string
+     * @param string $tagName
      */
     public function removeTag($tagName)
     {
         array_push($this->tagsToRemove, $tagName);
+        return $this;
     }
 
     /**
      * Remove all tags
      *
-     * @param $tagName string
      */
     public function removeAllTags()
     {
-        $this->tags->each(function ($tag) {
-            $tag->decrement()->save();
-        });
-        $this->tags()->dettach();
+        $currentTagNames = $this->tags->map(function ($item) {
+            return $item->name;
+        })->toArray();
+        $this->removeTags($currentTagNames);
+        return $this;
     }
 
     /**
      * Remove a multiple tags
      *
-     * @param $tagName string
+     * @param array or string $tagNames
      */
     public function removeTags($tagNames)
     {
@@ -100,12 +142,13 @@ trait Taggable
         foreach ($tagNames as $tagName) {
             $this->removeTag($tagName);
         }
+        return $this;
     }
 
     /**
      * Converts input into array
      *
-     * @param $tagNames string or array
+     * @param array or string $tagNames
      * @return array
      */
     private function tagsToArray($tagNames)
@@ -117,9 +160,22 @@ trait Taggable
         if (!is_array($tagNames)) {
             return [];
         }
-
-        $tagNames = reset($tagNames);
         $tagNames = array_map('trim', $tagNames);
         return array_values($tagNames);
+    }
+
+    /**
+     * Converts array of tag names in arrat of tag slugs
+     *
+     * @param array $tagNames
+     * @return array
+     */
+    private function tagsNamesToTagSlugs($tagNames)
+    {
+        $tagSlugs = [];
+        foreach ($tagNames as $tagName) {
+            array_push($tagSlugs, Str::slug($tagName));
+        }
+        return $tagSlugs;
     }
 }

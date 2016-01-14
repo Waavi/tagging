@@ -4,6 +4,8 @@ interface TagRepositoryInterface
 {
     public function findByName($name);
 
+    public function findBySlug($slug);
+
     public function create(array $attributes);
 
     public function findOrCreate($name);

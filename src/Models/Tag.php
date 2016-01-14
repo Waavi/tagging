@@ -9,19 +9,15 @@ use Waavi\Translation\Traits\Translatable;
 class Tag extends Model implements SluggableInterface, TagInterface
 {
     /**
-     * Indicates if the model should be timestamped.
-     *
-     * @var bool
-     */
-    public $timestamps = false;
-
-    /**
      * Traits
+     *
      */
     use Translatable;
     use SluggableTrait;
 
     protected $table = 'tagging_tags';
+
+    public $timestamps = false;
 
     public $fillable = ['name'];
 

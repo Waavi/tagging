@@ -1,12 +1,14 @@
 <?php namespace Waavi\Tagging\Test;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Waavi\Tagging\Contracts\TaggableInterface;
 use Waavi\Tagging\Traits\Taggable;
 
 class Post extends Model implements TaggableInterface
 {
     use Taggable;
+    use SoftDeletes;
 
     /**
      * The database table used by the model.
@@ -21,4 +23,11 @@ class Post extends Model implements TaggableInterface
      * @var array
      */
     protected $fillable = ['title', 'text'];
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = ['deleted_at'];
 }

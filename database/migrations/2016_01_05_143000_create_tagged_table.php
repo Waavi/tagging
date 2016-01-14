@@ -10,8 +10,8 @@ class CreateTaggedTable extends Migration
     {
         Schema::create('tagging_taggables', function (Blueprint $table) {
             $table->string('tag_id')->index();
-            $table->integer('taggable_id')->unsigned()->index();
-            $table->string('taggable_type')->index();
+            $table->integer('tagging_taggable_id')->unsigned()->index();
+            $table->string('tagging_taggable_type')->index();
         });
     }
 
