@@ -98,3 +98,49 @@ class PostRepository extends Repository implements TaggableRepositoryInterface
     }
 }
 ```
+
+## Usage
+
+### Taggable trait
+
+```php
+$post = Post::with('tags')->first(); // eager loading
+
+$post->addTag('8 Ball'); // Attach '8 Ball' tag
+$post->addTags(['9 Ball','10 Ball']); // Add '9 Ball' and '10 Ball' tags, also you always can use a string, for example: '9 Ball, 10 Ball'
+$post->setTags(['9 Ball','10 Ball']); // Add '9 Ball' and '10 Ball' tags and remove other tags for example '8 ball', also you always can use a string, for example: '9 Ball, 10 Ball'
+$post->removeTag('9 ball'); // Remove '9 Ball' tag
+$post->removeAllTags(); // Remove all tags
+$post->removeTags(['9 Ball','10 Ball']); // Remove '9 Ball' and '10 Ball' tags, also you always can use a string, for example: '9 Ball, 10 Ball'
+
+$post->tags; // Get collection of tags
+Post::withAnyTag(['9 Ball','10 Ball'])->get(); // Get posts with any tag listed, also you always can use a string, for example: '9 Ball, 10 Ball'
+Post::withAllTags(['9 Ball','10 Ball'])->get(); // Get posts with all the tags, also you always can use a string, for example: '9 Ball, 10 Ball'
+```
+
+### Tag Repository
+
+```php
+$tagRepository = \App::make(\Waavi\Tagging\Repositories\TagRepository::class);
+$tagRepository->findByName('8 Ball'); // Get tag by name
+$tagRepository->findBySlug('8-ball'); // Get tag by slug
+$tagRepository->create(['name' => '8 ball']); //Create a tag
+$tagRepository->findOrCreate('8-ball'); // Get tag by name or create a tag if not exists.
+$tagRepository->findOrCreateFromArray(['9 Ball','10 Ball']); // Get a collection of tags by name, create a tag if not exists.
+$tagRepository->update(['id' => '1', 'name' => '8 ball']); // Update a especific tag
+$tagRepository->deleteUnused(); // Delete unused tags(tags with count is zero).
+
+// View \Waavi\Tagging\Repositories\Repository class to discover another methods.
+```
+
+### TaggableRepository Repository trait
+
+```php
+$postRepository = \App::make(PostRepository::class);
+
+$postRepository->withAnyTag(['9 Ball','10 Ball'], ['tags', 'author'], 10); // Get posts with any tag listed, also you always can use a string, for example: '9 Ball, 10 Ball'
+$postRepository->withAllTags(['9 Ball','10 Ball'], ['tags', 'author'], 10); // Get posts with all the tags, also you always can use a string, for example: '9 Ball, 10 Ball'
+
+// View \Waavi\Tagging\Repositories\Repository class to discover another methods.
+
+```
