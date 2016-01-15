@@ -120,7 +120,8 @@ class TagRepository extends Repository
      */
     public function update(array $attributes)
     {
-        return $this->validate($attributes) ? (boolean) $this->model->where('id', $attributes['id'])->update($attributes) : false;
+        $model = $this->model->where('id', $attributes['id'])->first();
+        return $this->validate($attributes) ? (boolean) $model->update($attributes) : false;
     }
 
     /**
