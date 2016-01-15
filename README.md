@@ -133,7 +133,7 @@ $tagRepository->deleteUnused(); // Delete unused tags(tags with count is zero).
 // View \Waavi\Tagging\Repositories\Repository class to discover another methods.
 ```
 
-### TaggableRepository Repository trait
+### TaggableRepository trait
 
 ```php
 $postRepository = \App::make(PostRepository::class);
