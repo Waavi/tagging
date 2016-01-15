@@ -161,4 +161,9 @@ class TagRepository extends Repository
     {
         return $this->model->where('count', '=', 0)->delete();
     }
+
+    public function autofill($term)
+    {
+        return $this->model->where('name', 'like', "%{$term}%")->get()->lists('name')->toArray();
+    }
 }
