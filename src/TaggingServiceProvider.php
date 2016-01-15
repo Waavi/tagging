@@ -21,12 +21,11 @@ class TaggingServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/../config/tagging.php'   => config_path('tagging.php'),
-            __DIR__ . '/../database/migrations/' => database_path('migrations'),
+            __DIR__ . '/../config/tagging.php' => config_path('tagging.php'),
         ]);
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/tagging.php', 'tagging'
-        );
+        $this->publishes([
+            __DIR__ . '/../database/migrations/' => database_path('migrations'),
+        ], 'migrations');
     }
 
     /**
@@ -36,6 +35,9 @@ class TaggingServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/tagging.php', 'tagging'
+        );
         $this->app->bind(Contracts\TagInterface::class, config('tagging.model'));
     }
 }
