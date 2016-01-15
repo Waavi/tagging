@@ -1,4 +1,4 @@
-# Tagging - Laravel 5 - Tags for Eloquent models.
+# Tagging - Tags for Laravel 5 Eloquent models.
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/waavi/tagging.svg?style=flat-square)](https://packagist.org/packages/waavi/tagging)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
