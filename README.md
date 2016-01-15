@@ -16,14 +16,14 @@ WAAVI is a web development studio based in Madrid, Spain. You can learn more abo
 Require through composer
 
 ```shell
-composer require waavi/tagging 1.0.0
+composer require waavi/tagging 1.0.x
 ```
 
 Or manually edit your composer.json file:
     
 ```shell
 "require": {
-    "waavi/tagging": "1.0.0"
+    "waavi/tagging": "1.0.x"
 }
 ```
 
