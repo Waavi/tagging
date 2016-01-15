@@ -17,8 +17,6 @@ class Tag extends Model implements SluggableInterface, TagInterface
 
     protected $table = 'tagging_tags';
 
-    public $timestamps = false;
-
     public $fillable = ['name'];
 
     protected $sluggable = [

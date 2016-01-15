@@ -14,6 +14,7 @@ class CreateTagsTable extends Migration
             $table->string('name_translation');
             $table->string('slug')->index();
             $table->integer('count')->unsigned()->default(0);
+            $table->timestamps();
         });
     }
 
