@@ -136,8 +136,8 @@ $tagRepository->deleteUnused(); // Delete unused tags(tags with count is zero).
 ### TaggableRepository trait
 
 ```php
-$postRepository = \App::make(PostRepository::class);
 
+$postRepository = \App::make(PostRepository::class);
 $postRepository->withAnyTag(['9 Ball','10 Ball'], ['tags', 'author'], 10); // Get posts with any tag listed, also you always can use a string, for example: '9 Ball, 10 Ball'
 $postRepository->withAllTags(['9 Ball','10 Ball'], ['tags', 'author'], 10); // Get posts with all the tags, also you always can use a string, for example: '9 Ball, 10 Ball'
 
