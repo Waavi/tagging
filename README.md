@@ -144,3 +144,21 @@ $postRepository->withAllTags(['9 Ball','10 Ball'], ['tags', 'author'], 10); // G
 // View \Waavi\Tagging\Repositories\Repository class to discover another methods.
 
 ```
+
+## Differentiate tags for differents models
+
+If you want to differentiate tags for differents models. You must activate 'uses_tags_for_different_models' in tagging.php config. For example, ['8 ball', '9 ball'] tags for post models and ['8 ball', 'Pool championship'] tags for campionship models. Each tags only uses for each models.
+
+### Tag Repository (Only class changes his methods.)
+
+```php
+$tagRepository = \App::make(\Waavi\Tagging\Repositories\TagRepository::class);
+$tagRepository->all([], 10, 'posts'); // Get all tags for post models
+$tagRepository->trashed([],  10, 'posts'); // Get deleted tsag for post models
+$tagRepository->count('posts'); // Total tags for post models
+$tagRepository->findByName('8 Ball', 'posts'); // Get tag by name for post models
+$tagRepository->findBySlug('8-ball', 'posts'); // Get tag by slug for post models
+$tagRepository->create(['name' => '8 ball', 'taggable_type' => 'posts']); //Create a tag for post model
+$tagRepository->findOrCreate('8-ball', 'posts'); // Get tag by name or create a tag for post models if not exists.
+$tagRepository->findOrCreateFromArray(['9 Ball','10 Ball'], 'posts'); // Get a collection of tags by name, create a tag for post models if not exists.
+```
