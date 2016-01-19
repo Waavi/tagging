@@ -24,7 +24,11 @@ class TaggableObserver
                 }
             });
             if ($tags->count() == 0) {
-                $tag = $tagRepository->findOrCreate($tagName);
+                $taggableType = null;
+                if (config('tagging.uses_tags_for_different_models')) {
+                    $taggableType = $model->getTable();
+                }
+                $tag = $tagRepository->findOrCreate($tagName, $taggableType);
                 $model->tags()->attach($tag->id);
                 $tag->increment('count', 1);
                 $tag->save();

@@ -25,6 +25,18 @@ class Tag extends Model implements SluggableInterface, TagInterface
     ];
 
     /**
+     * @param array $attributes
+     */
+    public function __construct(array $attributes = [])
+    {
+        if (function_exists('config') and config('tagging.uses_tags_for_different_models')) {
+            $this->fillable            = ['name', 'taggable_type'];
+            $this->sluggable['unique'] = false;
+        }
+        parent::__construct($attributes);
+    }
+
+    /**
      *  The following attributes will have translations managed automatically.
      *  See Translatable Trait
      *

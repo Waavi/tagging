@@ -41,7 +41,10 @@ trait Taggable
         $query->where(function ($q) use ($tagSlugs) {
             foreach ($tagSlugs as $tagSlug) {
                 $q->whereHas('tags', function ($q) use ($tagSlug) {
-                    $q->where('slug', $tagSlug);
+                    $q->where('slug', 'like', $tagSlug);
+                    if (config('tagging.uses_tags_for_different_models')) {
+                        $q->where('taggable_type', 'like', $this->getTable());
+                    }
                 });
             }
         });
@@ -61,6 +64,9 @@ trait Taggable
 
         return $query->whereHas('tags', function ($q) use ($tagSlugs) {
             $q->whereIn('slug', $tagSlugs);
+            if (config('tagging.uses_tags_for_different_models')) {
+                $q->where('taggable_type', 'like', $this->getTable());
+            }
         });
     }
 

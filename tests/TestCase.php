@@ -7,9 +7,12 @@ use Waavi\Translation\Repositories\LanguageRepository;
 
 abstract class TestCase extends Orchestra
 {
-    public function setUp()
+    public function setUp($withDifferentModels = false)
     {
         parent::setUp();
+        if ($withDifferentModels) {
+            $this->app['config']->set('tagging.uses_tags_for_different_models', true);
+        }
         $this->setUpDatabase($this->app);
     }
     /**
