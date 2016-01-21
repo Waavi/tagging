@@ -33,10 +33,10 @@ class TaggableRepositoryWithDifferentModelsTest extends TestCase
         $this->post2             = Post::create(['title' => 'Jaime Serrano win the world pool championship.', 'text' => 'Lorep ipsum...']);
         $this->expense           = Expense::create(['concept' => 'Lorep ipsum..', 'price' => 10]);
         $this->expense2          = Expense::create(['concept' => 'Lorep ipsum 2..', 'price' => 15]);
-        $this->tag1              = Tag::create(['name' => '8 Ball', 'taggable_type' => 'posts']);
-        $this->tag2              = Tag::create(['name' => '9 Ball', 'taggable_type' => 'posts']);
-        $this->tag3              = Tag::create(['name' => '10 Ball', 'taggable_type' => 'posts']);
-        $this->tag4              = Tag::create(['name' => '10 Ball', 'taggable_type' => 'expenses']);
+        $this->tag1              = Tag::create(['name' => '8 Ball', 'taggable_type' => 'Waavi\Tagging\Test\Post']);
+        $this->tag2              = Tag::create(['name' => '9 Ball', 'taggable_type' => 'Waavi\Tagging\Test\Post']);
+        $this->tag3              = Tag::create(['name' => '10 Ball', 'taggable_type' => 'Waavi\Tagging\Test\Post']);
+        $this->tag4              = Tag::create(['name' => '10 Ball', 'taggable_type' => 'Waavi\Tagging\Test\Expense']);
     }
 
     /**

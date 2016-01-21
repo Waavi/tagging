@@ -29,10 +29,10 @@ class TaggableWithDifferentModelsTest extends TestCase
         $this->post2    = Post::create(['title' => 'Jaime Serrano win the world pool championship.', 'text' => 'Lorep ipsum...']);
         $this->expense  = Expense::create(['concept' => 'Lorep ipsum..', 'price' => 10]);
         $this->expense2 = Expense::create(['concept' => 'Lorep ipsum 2..', 'price' => 15]);
-        $this->tag1     = Tag::create(['name' => '8 Ball', 'taggable_type' => 'posts']);
-        $this->tag2     = Tag::create(['name' => '9 Ball', 'taggable_type' => 'posts']);
-        $this->tag3     = Tag::create(['name' => '10 Ball', 'taggable_type' => 'posts']);
-        $this->tag4     = Tag::create(['name' => '10 Ball', 'taggable_type' => 'expenses']);
+        $this->tag1     = Tag::create(['name' => '8 Ball', 'taggable_type' => 'Waavi\Tagging\Test\Post']);
+        $this->tag2     = Tag::create(['name' => '9 Ball', 'taggable_type' => 'Waavi\Tagging\Test\Post']);
+        $this->tag3     = Tag::create(['name' => '10 Ball', 'taggable_type' => 'Waavi\Tagging\Test\Post']);
+        $this->tag4     = Tag::create(['name' => '10 Ball', 'taggable_type' => 'Waavi\Tagging\Test\Expense']);
     }
 
     /**
@@ -42,7 +42,7 @@ class TaggableWithDifferentModelsTest extends TestCase
     {
         \Event::shouldReceive('fire')->once()->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->post->addTag($this->tag1->name)->save();
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'posts')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Post')->count());
         $this->assertEquals(1, $this->post->fresh()->tags->count());
     }
 
@@ -53,7 +53,7 @@ class TaggableWithDifferentModelsTest extends TestCase
     {
         \Event::shouldReceive('fire')->once()->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->expense->addTag($this->tag1->name)->save();
-        $this->assertEquals(2, Tag::where('taggable_type', 'like', 'expenses')->count());
+        $this->assertEquals(2, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Expense')->count());
         $this->assertEquals(1, $this->expense->fresh()->tags->count());
     }
 
@@ -64,7 +64,7 @@ class TaggableWithDifferentModelsTest extends TestCase
     {
         \Event::shouldReceive('fire')->once()->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->post->addTag('8 ball')->save();
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'posts')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Post')->count());
         $this->assertEquals(1, $this->post->fresh()->tags->count());
     }
 
@@ -75,11 +75,11 @@ class TaggableWithDifferentModelsTest extends TestCase
     {
         \Event::shouldReceive('fire')->times(3)->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->post->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'posts')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Post')->count());
         $this->assertEquals(3, $this->post->fresh()->tags->count());
         \Event::shouldReceive('fire')->times(3)->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->expense->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'expenses')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Expense')->count());
         $this->assertEquals(3, $this->post->fresh()->tags->count());
         $this->assertEquals(6, Tag::count());
     }
@@ -91,11 +91,11 @@ class TaggableWithDifferentModelsTest extends TestCase
     {
         \Event::shouldReceive('fire')->times(3)->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->post->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'posts')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Post')->count());
         $this->assertEquals(3, $this->post->fresh()->tags->count());
         \Event::shouldReceive('fire')->times(3)->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->expense->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'expenses')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Expense')->count());
         $this->assertEquals(3, $this->post->fresh()->tags->count());
         \Event::shouldReceive('fire')->once()->with(\Waavi\Tagging\Events\TagRemoved::class);
         $this->post->removeTag($this->tag1->name)->save();
@@ -104,8 +104,8 @@ class TaggableWithDifferentModelsTest extends TestCase
         }
         $this->assertEquals(5, Tag::count());
         $this->assertEquals(2, $this->post->fresh()->tags->count());
-        $this->assertEquals(2, Tag::where('taggable_type', 'like', 'posts')->count());
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'expenses')->count());
+        $this->assertEquals(2, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Post')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Expense')->count());
     }
 
     /**
@@ -115,18 +115,18 @@ class TaggableWithDifferentModelsTest extends TestCase
     {
         \Event::shouldReceive('fire')->times(3)->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->post->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'posts')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Post')->count());
         $this->assertEquals(3, $this->post->fresh()->tags->count());
         \Event::shouldReceive('fire')->times(3)->with(\Waavi\Tagging\Events\TagAdded::class);
         $this->expense->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'expenses')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Expense')->count());
         $this->assertEquals(3, $this->post->fresh()->tags->count());
         \Event::shouldReceive('fire')->times(3)->with(\Waavi\Tagging\Events\TagRemoved::class);
         $this->post->removeAllTags()->save();
         $this->assertEquals(3, Tag::count());
         $this->assertEquals(0, $this->post->fresh()->tags->count());
-        $this->assertEquals(0, Tag::where('taggable_type', 'like', 'posts')->count());
-        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'expenses')->count());
+        $this->assertEquals(0, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Post')->count());
+        $this->assertEquals(3, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Expense')->count());
     }
 
     /**

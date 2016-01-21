@@ -17,14 +17,14 @@ class TagWithDifferentModelsTest extends TestCase
     {
         $tag                = new Tag;
         $tag->name          = '8  Ball';
-        $tag->taggable_type = 'posts';
+        $tag->taggable_type = 'Waavi\Tagging\Test\Post';
         $saved              = $tag->save() ? true : false;
         $this->assertTrue($saved);
         $this->assertEquals(1, Tag::count());
-        $this->assertEquals(1, Tag::where('taggable_type', 'like', 'posts')->count());
+        $this->assertEquals(1, Tag::where('taggable_type', 'like', 'Waavi\Tagging\Test\Post')->count());
         $this->assertEquals('8  Ball', $tag->name);
         $this->assertEquals('8-ball', $tag->slug);
-        $this->assertEquals('posts', $tag->taggable_type);
+        $this->assertEquals('Waavi\Tagging\Test\Post', $tag->taggable_type);
         $this->assertEquals(0, $tag->count);
     }
 }

@@ -153,12 +153,12 @@ If you want to differentiate tags for differents models. You must activate 'uses
 
 ```php
 $tagRepository = \App::make(\Waavi\Tagging\Repositories\TagRepository::class);
-$tagRepository->all([], 10, 'posts'); // Get all tags for post models
-$tagRepository->trashed([],  10, 'posts'); // Get deleted tsag for post models
-$tagRepository->count('posts'); // Total tags for post models
-$tagRepository->findByName('8 Ball', 'posts'); // Get tag by name for post models
-$tagRepository->findBySlug('8-ball', 'posts'); // Get tag by slug for post models
-$tagRepository->create(['name' => '8 ball', 'taggable_type' => 'posts']); //Create a tag for post model
-$tagRepository->findOrCreate('8-ball', 'posts'); // Get tag by name or create a tag for post models if not exists.
-$tagRepository->findOrCreateFromArray(['9 Ball','10 Ball'], 'posts'); // Get a collection of tags by name, create a tag for post models if not exists.
+$tagRepository->all([], 10, 'Waavi/Models/Post'); // Get all tags for post models
+$tagRepository->trashed([],  10, 'Waavi/Models/Post'); // Get deleted tsag for post models
+$tagRepository->count('Waavi/Models/Post'); // Total tags for post models
+$tagRepository->findByName('8 Ball', 'Waavi/Models/Post'); // Get tag by name for post models
+$tagRepository->findBySlug('8-ball', 'Waavi/Models/Post'); // Get tag by slug for post models
+$tagRepository->create(['name' => '8 ball', 'taggable_type' => 'Waavi/Models/Post']); //Create a tag for post model
+$tagRepository->findOrCreate('8-ball', 'Waavi/Models/Post'); // Get tag by name or create a tag for post models if not exists.
+$tagRepository->findOrCreateFromArray(['9 Ball','10 Ball'], 'Waavi/Models/Post'); // Get a collection of tags by name, create a tag for post models if not exists.
 ```

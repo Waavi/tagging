@@ -26,7 +26,7 @@ class TaggableObserver
             if ($tags->count() == 0) {
                 $taggableType = null;
                 if (config('tagging.uses_tags_for_different_models')) {
-                    $taggableType = $model->getTable();
+                    $taggableType = get_class($model);
                 }
                 $tag = $tagRepository->findOrCreate($tagName, $taggableType);
                 $model->tags()->attach($tag->id);
