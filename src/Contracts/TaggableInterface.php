@@ -2,12 +2,13 @@
 
 interface TaggableInterface
 {
-    /**
-     * Return collection of tags
-     *
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
     public function tags();
+
+    public function tagNamesToString();
+
+    public function tagNamesToJson();
+
+    public function tagNamesToArray();
 
     public function addTag($tagName);
 

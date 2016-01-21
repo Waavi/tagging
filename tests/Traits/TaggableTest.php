@@ -237,4 +237,31 @@ class TaggableTest extends TestCase
         $this->post2->addTags($this->tag2->name)->save();
         $this->assertEquals(1, Post::withAllTags([$this->tag1->name, $this->tag2->name])->count());
     }
+
+    /**
+     * @test
+     */
+    public function get_tags_as_array()
+    {
+        $this->post->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
+        $this->assertEquals(["8 Ball", "9 Ball", "10 Ball"], $this->post->tagNamesToArray());
+    }
+
+    /**
+     * @test
+     */
+    public function get_tags_as_json()
+    {
+        $this->post->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
+        $this->assertEquals('["8 Ball","9 Ball","10 Ball"]', $this->post->tagNamesToJson());
+    }
+
+    /**
+     * @test
+     */
+    public function get_tags_as_string()
+    {
+        $this->post->addTags([$this->tag1->name, $this->tag2->name, $this->tag3->name])->save();
+        $this->assertEquals("8 Ball, 9 Ball, 10 Ball", $this->post->tagNamesToString());
+    }
 }

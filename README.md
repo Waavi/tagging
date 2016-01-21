@@ -114,6 +114,9 @@ $post->removeAllTags(); // Remove all tags
 $post->removeTags(['9 Ball','10 Ball']); // Remove '9 Ball' and '10 Ball' tags, also you always can use a string, for example: '9 Ball, 10 Ball'
 
 $post->tags; // Get collection of tags
+$post->tagNamesToString(); // Get a string with all tags
+$post->tagNamesToJson(); // Get a json with all tags
+$post->tagNamesToArray(); // Get an array with all tags
 Post::withAnyTag(['9 Ball','10 Ball'])->get(); // Get posts with any tag listed, also you always can use a string, for example: '9 Ball, 10 Ball'
 Post::withAllTags(['9 Ball','10 Ball'])->get(); // Get posts with all the tags, also you always can use a string, for example: '9 Ball, 10 Ball'
 ```

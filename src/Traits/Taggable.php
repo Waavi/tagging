@@ -29,6 +29,45 @@ trait Taggable
     }
 
     /**
+     * Return a string with all tags
+     *
+     * @return string
+     */
+    public function tagNamesToString()
+    {
+        $arrayTagNames = $this->tagNamesToArray();
+        $tagNames      = count($arrayTagNames) ? $arrayTagNames[0] : '';
+        for ($i = 1; $i < count($arrayTagNames); $i++) {
+            $tagNames = $tagNames . ', ' . $arrayTagNames[$i];
+        }
+        return $tagNames;
+    }
+
+    /**
+     * Return a json with all tags
+     *
+     * @return JSON Object
+     */
+    public function tagNamesToJson()
+    {
+        return $this->tags->map(function ($tag) {
+            return $tag->name;
+        })->toJson();
+    }
+
+    /**
+     * Return an array with all tags
+     *
+     * @return array
+     */
+    public function tagNamesToArray()
+    {
+        return $this->tags->map(function ($tag) {
+            return $tag->name;
+        })->toArray();
+    }
+
+    /**
      * Filter model to subset with all given tags
      *
      * @param array or string $tagNames
