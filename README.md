@@ -11,6 +11,13 @@ This package allows you to easily tagged eloquents models.
 
 WAAVI is a web development studio based in Madrid, Spain. You can learn more about us at [waavi.com](http://waavi.com)
 
+## Laravel compatibility
+
+ Laravel  | translation
+:---------|:----------
+ 5.1.x    | 1.0.x
+ 5.2.x    | 1.0.7 and higher
+
 ## Installation
 
 Require through composer
@@ -20,7 +27,7 @@ composer require waavi/tagging 1.0.x
 ```
 
 Or manually edit your composer.json file:
-    
+
 ```shell
 "require": {
     "waavi/tagging": "1.0.x"
@@ -34,10 +41,10 @@ Waavi\Tagging\TaggingServiceProvider::class,
 ```
 
 If you not use Eloquent-Sluggable(https://github.com/cviebrock/eloquent-sluggable) or Waavi\Translation(https://github.com/Waavi/translation) add too:
-    
+
 ```php
 Cviebrock\EloquentSluggable\SluggableServiceProvider::class,
-Waavi\Translation\TranslationServiceProvider::class,    
+Waavi\Translation\TranslationServiceProvider::class,
 ```
 
 Publish the configuration file and run the migrations:
@@ -62,7 +69,7 @@ use Waavi\Tagging\Traits\Taggable;
 class Post extends Model implements TaggableInterface
 {
     use Taggable;
-} 
+}
 ```
 
 ### Model Repositories
