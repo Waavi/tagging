@@ -29,10 +29,12 @@ class TaggableObserver
                     $taggableType = get_class($model);
                 }
                 $tag = $tagRepository->findOrCreate($tagName, $taggableType);
-                $model->tags()->attach($tag->id);
-                $tag->increment('count', 1);
-                $tag->save();
-                Event::fire(new TagAdded($model));
+                if ($tag) {
+                    $model->tags()->attach($tag->id);
+                    $tag->increment('count', 1);
+                    $tag->save();
+                    Event::fire(new TagAdded($model));
+                }
             }
         }
         foreach ($model->tagsToRemove as $tagName) {
