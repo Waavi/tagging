@@ -1,12 +1,11 @@
 <?php namespace Waavi\Tagging\Traits;
 
 use Illuminate\Support\Str;
+use Waavi\Tagging\Contracts\TagInterface;
+use Waavi\Tagging\Models\Tag;
 
 trait Taggable
 {
-    public $tagsToAdd    = [];
-    public $tagsToRemove = [];
-
     /**
      *  Register Model observer.
      *
@@ -14,7 +13,11 @@ trait Taggable
      */
     public static function bootTaggable()
     {
-        static::observe(new TaggableObserver);
+        static::deleted(function ($taggable) {
+            if (config('tagging.on_delete_cascade')) {
+                $taggable->detag();
+            };
+        });
     }
 
     /**
@@ -24,8 +27,7 @@ trait Taggable
      */
     public function tags()
     {
-        $model = config('tagging.model');
-        return $this->morphToMany($model, 'tagging_taggable');
+        return $this->morphToMany(get_class(app(TagInterface::class)), 'tagging_taggable');
     }
 
     /**
@@ -33,26 +35,9 @@ trait Taggable
      *
      * @return string
      */
-    public function tagNamesToString()
+    public function getTagNamesAttribute()
     {
-        $arrayTagNames = $this->tagNamesToArray();
-        $tagNames      = count($arrayTagNames) ? $arrayTagNames[0] : '';
-        for ($i = 1; $i < count($arrayTagNames); $i++) {
-            $tagNames = $tagNames . ', ' . $arrayTagNames[$i];
-        }
-        return $tagNames;
-    }
-
-    /**
-     * Return a json with all tags
-     *
-     * @return JSON Object
-     */
-    public function tagNamesToJson()
-    {
-        return $this->tags->map(function ($tag) {
-            return $tag->name;
-        })->toJson();
+        return $this->tags->implode('name', ',');
     }
 
     /**
@@ -60,11 +45,9 @@ trait Taggable
      *
      * @return array
      */
-    public function tagNamesToArray()
+    public function getTagArrayAttribute()
     {
-        return $this->tags->map(function ($tag) {
-            return $tag->name;
-        })->toArray();
+        return $this->tags->pluck('name')->toArray();
     }
 
     /**
@@ -74,21 +57,18 @@ trait Taggable
      */
     public function scopeWithAllTags($query, $tagNames)
     {
-        $tagNames = $this->tagsToArray($tagNames);
-        $tagSlugs = $this->tagsNamesToTagSlugs($tagNames);
-
-        $query->where(function ($q) use ($tagSlugs) {
-            foreach ($tagSlugs as $tagSlug) {
-                $q->whereHas('tags', function ($q) use ($tagSlug) {
-                    $q->where('slug', 'like', $tagSlug);
-                    if (config('tagging.uses_tags_for_different_models')) {
-                        $q->where('taggable_type', 'like', get_class($this));
-                    }
+        $tagNames = is_array($tagNames) ? $tagNames : explode(',', $tagNames);
+        return collect($tagNames)
+        // Normalize names
+        ->map(function ($tagName) {
+            return Tag::normalizeTagName($tagName);
+        })
+        // Apply one where clause per tag
+            ->reduce(function ($q, $tagName) {
+                return $q->whereHas('tags', function ($subQuery) use ($tagName) {
+                    $subQuery->where('name', $tagName);
                 });
-            }
-        });
-
-        return $query;
+            }, $query);
     }
 
     /**
@@ -98,129 +78,90 @@ trait Taggable
      */
     public function scopeWithAnyTag($query, $tagNames)
     {
-        $tagNames = $this->tagsToArray($tagNames);
-        $tagSlugs = $this->tagsNamesToTagSlugs($tagNames);
+        $tagNames = is_array($tagNames) ? $tagNames : explode(',', $tagNames);
+        $tagNames = collect($tagNames)
+            ->map(function ($tagName) {
+                return Tag::normalizeTagName($tagName);
+            })
+            ->toArray();
 
-        return $query->whereHas('tags', function ($q) use ($tagSlugs) {
-            $q->whereIn('slug', $tagSlugs);
-            if (config('tagging.uses_tags_for_different_models')) {
-                $q->where('taggable_type', 'like', get_class($this));
-            }
+        return $query->whereHas('tags', function ($subQuery) use ($tagNames) {
+            return $subQuery->whereIn('name', $tagNames);
         });
     }
 
     /**
-     * Adds a single tag
+     *  Return a Collection of all existing tags for this class.
      *
-     * @param string $tagName
+     *  @return \Illuminate\Database\Eloquent\Collection
      */
-    public function addTag($tagName)
+    public function availableTags()
     {
-        array_push($this->tagsToAdd, $tagName);
-        return $this;
+        return app(TagInterface::class)->join('tagging_taggables', function ($join) {
+            $join->on('tagging_taggable_type', '=', get_class($this))
+                ->on('tagging_tags.id', '=', 'tag_id');
+        })->groupBy('slug')
+            ->get()
+            ->pluck('name')
+            ->toArray();
     }
 
     /**
-     * Adds a multiple tags
+     *  Add the given tags to the model.
      *
-     * @param array or string $tagNames
+     *  @param mixed $tagNames  Array or comma separated list of tags to apply to the model.
      */
-    public function addTags($tagNames)
+    public function tag($tagNames)
     {
-        $tagNames = $this->tagsToArray($tagNames);
-        foreach ($tagNames as $tagName) {
-            $this->addTag($tagName);
-        }
-        return $this;
+        $tagNames = is_array($tagNames) ? $tagNames : explode(',', $tagNames);
+        $tagIds   = collect($tagNames)
+            ->map(function ($tagName) {
+                return app(TagInterface::class)->firstOrCreate([
+                    'name' => Tag::normalizeTagName($tagName),
+                ]);
+            })
+            ->pluck('id')
+            ->toArray();
+        $this->tags()->syncWithoutDetaching($tagIds);
+        return $this->load('tags');
     }
 
     /**
-     * Set tags
+     *  Removes the given tags from the model.
      *
-     * @param array or string $tagNames
+     *  @param mixed $tagNames  Array or comma separated list of tags to apply to the model.
      */
-    public function setTags($tagNames)
+    public function untag($tagNames)
     {
-        $tagNames        = $this->tagsToArray($tagNames);
-        $currentTagNames = $this->tags->map(function ($item) {
-            return $item->name;
-        })->toArray();
-        $deletions = array_diff($currentTagNames, $tagNames);
-        $additions = array_diff($tagNames, $currentTagNames);
-        $this->removeTags($deletions);
-        $this->addTags($additions);
-        return $this;
+        $tagNames = collect(is_array($tagNames) ? $tagNames : explode(',', $tagNames))
+            ->map(function ($tagName) {
+                return Tag::normalizeTagName($tagName);
+            })->toArray();
+        $tags = app(TagInterface::class)->whereIn('name', $tagNames)->get()->pluck('id')->toArray();
+        $this->tags()->detach($tags);
+        return $this->load('tags');
     }
 
     /**
-     * Removes a single tag
+     *  Remove all existing tags and apply the given ones.
      *
-     * @param string $tagName
+     *  @param mixed $tagNames  Array or comma separated list of tags to apply to the model.
+     *  @return void
      */
-    public function removeTag($tagName)
+    public function retag($tagNames)
     {
-        array_push($this->tagsToRemove, $tagName);
-        return $this;
+        $this->detag();
+        return $this->tag($tagNames);
     }
 
     /**
-     * Remove all tags
+     *  Removes all tags
      *
+     *  @param string $tagName
      */
-    public function removeAllTags()
+    public function detag()
     {
-        $currentTagNames = $this->tags->map(function ($item) {
-            return $item->name;
-        })->toArray();
-        $this->removeTags($currentTagNames);
-        return $this;
-    }
-
-    /**
-     * Remove a multiple tags
-     *
-     * @param array or string $tagNames
-     */
-    public function removeTags($tagNames)
-    {
-        $tagNames = $this->tagsToArray($tagNames);
-        foreach ($tagNames as $tagName) {
-            $this->removeTag($tagName);
-        }
-        return $this;
-    }
-
-    /**
-     * Converts input into array
-     *
-     * @param array or string $tagNames
-     * @return array
-     */
-    private function tagsToArray($tagNames)
-    {
-        if (is_string($tagNames)) {
-            $tagNames = explode(',', $tagNames);
-        }
-
-        if (!is_array($tagNames)) {
-            return [];
-        }
-        $tagNames = array_map('trim', $tagNames);
-        return array_values($tagNames);
-    }
-
-    /**
-     * Converts array of tag names in arrat of tag slugs
-     *
-     * @param array $tagNames
-     * @return array
-     */
-    private function tagsNamesToTagSlugs($tagNames)
-    {
-        $tagSlugs = [];
-        foreach ($tagNames as $tagName) {
-            array_push($tagSlugs, Str::slug($tagName));
-        }
-        return $tagSlugs;
+        $this->tags()->sync([]);
+        return $this->load('tags');
     }
 }

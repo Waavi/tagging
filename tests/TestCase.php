@@ -7,12 +7,12 @@ use Waavi\Translation\Repositories\LanguageRepository;
 
 abstract class TestCase extends Orchestra
 {
-    public function setUp($withDifferentModels = false)
+    /**
+     * @param $withDifferentModels
+     */
+    public function setUp()
     {
         parent::setUp();
-        if ($withDifferentModels) {
-            $this->app['config']->set('tagging.uses_tags_for_different_models', true);
-        }
         $this->setUpDatabase($this->app);
     }
     /**
@@ -25,7 +25,7 @@ abstract class TestCase extends Orchestra
         return [
             \Waavi\Tagging\TaggingServiceProvider::class,
             \Waavi\Translation\TranslationServiceProvider::class,
-            \Cviebrock\EloquentSluggable\SluggableServiceProvider::class,
+            \Cviebrock\EloquentSluggable\ServiceProvider::class,
         ];
     }
 

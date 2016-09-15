@@ -7,40 +7,41 @@
 
 ## Introduction
 
-This package allows you to easily tagged eloquents models.
+This package allows you to easily add tags to Eloquents models. Inspired by the handy [cviebrock/eloquent-taggable](https://github.com/cviebrock/eloquent-taggable) package.
 
 WAAVI is a web development studio based in Madrid, Spain. You can learn more about us at [waavi.com](http://waavi.com)
 
 ## Laravel compatibility
 
- Laravel  | translation
+ Laravel  | tagging
 :---------|:----------
  5.1.x    | 1.0.x
  5.2.x    | 1.0.7 and higher
+ 5.3.x    | 2.0 and higher
 
 ## Installation
 
 Require through composer
 
 ```shell
-composer require waavi/tagging 1.0.x
+composer require waavi/tagging ^2.0
 ```
 
 Or manually edit your composer.json file:
 
 ```shell
 "require": {
-    "waavi/tagging": "1.0.x"
+    "waavi/tagging": "^2.0"
 }
 ```
 
-In config/app.php, add the following entry to the end of the providers array:
+Add the following entry to the end of the providers array in app/config.php:
 
 ```php
 Waavi\Tagging\TaggingServiceProvider::class,
 ```
 
-If you not use Eloquent-Sluggable(https://github.com/cviebrock/eloquent-sluggable) or Waavi\Translation(https://github.com/Waavi/translation) add too:
+If you do not use [Eloquent-Sluggable](https://github.com/cviebrock/eloquent-sluggable) or [Waavi\Translation](https://github.com/Waavi/translation) you will also need to add:
 
 ```php
 Cviebrock\EloquentSluggable\SluggableServiceProvider::class,
@@ -56,119 +57,98 @@ php artisan migrate
 
 Now you can edit config/tagging.php with your settings.
 
-## Usage
+## Updating from version 1.x
 
-### Eloquent Models
+Version 2.x is **not** backwards compatible with 1.x. You will need to fully remove v1, delete the migrations, and then re-install from scratch.
 
-Your models should implement Taggable's interface and use it's trait:
+## Configuration
+
+You may find the configuration file at `config/tagging`
 
 ```php
-use Waavi\Tagging\Contracts\TaggableInterface;
+return [
+    // Remove all the tag relations on model delete
+    'on_delete_cascade' => true,
+    // If you want your tag names to be translatable using waavi/translation, set to true.
+    'translatable'      => false,
+    // All tag names will be trimed and normalized using this function:
+    'normalizer'        => 'mb_strtolower',
+];
+```
+
+## Usage
+
+Your models should implement Taggable's interface and use its trait:
+
+```php
 use Waavi\Tagging\Traits\Taggable;
 
-class Post extends Model implements TaggableInterface
+class Post extends Model
 {
     use Taggable;
 }
 ```
 
-### Model Repositories
-
-Your repostories should extends of 'Waavi\Tagging\Repositories\Repository' implement TaggableRepository's interface and use it's trait:
+Add tags to an **existing** model without removing existing ones:
 
 ```php
-use Waavi\Tagging\Contracts\TaggableRepositoryInterface;
-use Waavi\Tagging\Repositories\Repository;
-use PostModel;
-use Waavi\Tagging\Traits\TaggableRepository;
+// Tag with a comma separated list of tags:
+$model->tag('apple,orange');
 
-class PostRepository extends Repository implements TaggableRepositoryInterface
-{
-    use TaggableRepository;
-
-    /**
-     * The model being queried.
-     *
-     * @var PostModel
-     */
-    protected $model;
-
-    /**
-     *  Constructor
-     *  @param  PostModel      $model  Bade model for queries.
-     *  @param  \Illuminate\Validation\Validator        $validator  Validator factory
-     *  @return void
-     */
-    public function __construct(PostModel $model)
-    {
-        $this->model = $model;
-    }
-}
+// Tag with an array of tags:
+$model->tag(['apple', 'orange']);
 ```
 
-## Usage
-
-### Taggable trait
+Replace existing tags by the given ones in an **existing** model:
 
 ```php
-$post = Post::with('tags')->first(); // eager loading
+// Tag with a comma separated list of tags:
+$model->retag('apple,orange');
 
-$post->addTag('8 Ball'); // Attach '8 Ball' tag
-$post->addTags(['9 Ball','10 Ball']); // Add '9 Ball' and '10 Ball' tags, also you always can use a string, for example: '9 Ball, 10 Ball'
-$post->setTags(['9 Ball','10 Ball']); // Add '9 Ball' and '10 Ball' tags and remove other tags for example '8 ball', also you always can use a string, for example: '9 Ball, 10 Ball'
-$post->removeTag('9 ball'); // Remove '9 Ball' tag
-$post->removeAllTags(); // Remove all tags
-$post->removeTags(['9 Ball','10 Ball']); // Remove '9 Ball' and '10 Ball' tags, also you always can use a string, for example: '9 Ball, 10 Ball'
-
-$post->tags; // Get collection of tags
-$post->tagNamesToString(); // Get a string with all tags
-$post->tagNamesToJson(); // Get a json with all tags
-$post->tagNamesToArray(); // Get an array with all tags
-Post::withAnyTag(['9 Ball','10 Ball'])->get(); // Get posts with any tag listed, also you always can use a string, for example: '9 Ball, 10 Ball'
-Post::withAllTags(['9 Ball','10 Ball'])->get(); // Get posts with all the tags, also you always can use a string, for example: '9 Ball, 10 Ball'
+// Tag with an array of tags:
+$model->retag(['apple', 'orange']);
 ```
 
-### Tag Repository
+Remove tags from an **existing** model:
 
 ```php
-$tagRepository = \App::make(\Waavi\Tagging\Repositories\TagRepository::class);
-$tagRepository->findByName('8 Ball'); // Get tag by name
-$tagRepository->findBySlug('8-ball'); // Get tag by slug
-$tagRepository->create(['name' => '8 ball']); //Create a tag
-$tagRepository->findOrCreate('8-ball'); // Get tag by name or create a tag if not exists.
-$tagRepository->findOrCreateFromArray(['9 Ball','10 Ball']); // Get a collection of tags by name, create a tag if not exists.
-$tagRepository->update(['id' => '1', 'name' => '8 ball']); // Update a especific tag
-$tagRepository->deleteUnused(); // Delete unused tags(tags with count is zero).
+// Remove tags with a comma separated list:
+$model->untag('apple,orange');
 
-// View \Waavi\Tagging\Repositories\Repository class to discover another methods.
+// Remove tags with an array of tags:
+$model->untag(['apple', 'orange']);
 ```
 
-### TaggableRepository trait
+Remove all tags from an **existing** model:
 
 ```php
-
-$postRepository = \App::make(PostRepository::class);
-$postRepository->withAnyTag(['9 Ball','10 Ball'], ['tags', 'author'], 10); // Get posts with any tag listed, also you always can use a string, for example: '9 Ball, 10 Ball'
-$postRepository->withAllTags(['9 Ball','10 Ball'], ['tags', 'author'], 10); // Get posts with all the tags, also you always can use a string, for example: '9 Ball, 10 Ball'
-
-// View \Waavi\Tagging\Repositories\Repository class to discover another methods.
-
+$model->detag();
 ```
 
-## Differentiate tags for differents models
-
-If you want to differentiate tags for differents models. You must activate 'uses_tags_for_different_models' in tagging.php config. For example, ['8 ball', '9 ball'] tags for post models and ['8 ball', 'Pool championship'] tags for campionship models. Each tags only uses for each models.
-
-### Tag Repository (Only class changes his methods.)
+Get tags:
 
 ```php
-$tagRepository = \App::make(\Waavi\Tagging\Repositories\TagRepository::class);
-$tagRepository->all([], 10, 'Waavi/Models/Post'); // Get all tags for post models
-$tagRepository->trashed([],  10, 'Waavi/Models/Post'); // Get deleted tsag for post models
-$tagRepository->count('Waavi/Models/Post'); // Total tags for post models
-$tagRepository->findByName('8 Ball', 'Waavi/Models/Post'); // Get tag by name for post models
-$tagRepository->findBySlug('8-ball', 'Waavi/Models/Post'); // Get tag by slug for post models
-$tagRepository->create(['name' => '8 ball', 'taggable_type' => 'Waavi/Models/Post']); //Create a tag for post model
-$tagRepository->findOrCreate('8-ball', 'Waavi/Models/Post'); // Get tag by name or create a tag for post models if not exists.
-$tagRepository->findOrCreateFromArray(['9 Ball','10 Ball'], 'Waavi/Models/Post'); // Get a collection of tags by name, create a tag for post models if not exists.
+// As comma separated list:
+$model->tagNames;
+
+// As array ['apple', 'orange']:
+$model->tagArray;
+
+// Get a list of all of the tags ever applied to any model of the same class: ['apple', 'orange', 'strawberry']
+$model->availableTags();
+```
+
+Get by tag:
+
+```php
+// Get entries that have ALL of the given tags:
+$model->withAllTags('apple, orange');
+$model->withAllTags(['apple', 'orange']);
+
+// Get entries that have ANY of the given tags:
+$model->withAnyTags('apple, orange');
+$model->withAnyTags(['apple', 'orange']);
+
+// Get a list of all of the tags ever applied to any model of the same class: ['apple', 'orange', 'strawberry']
+$model->availableTags();
 ```

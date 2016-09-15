@@ -20,12 +20,8 @@ class TaggingServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->publishes([
-            __DIR__ . '/../config/tagging.php' => config_path('tagging.php'),
-        ]);
-        $this->publishes([
-            __DIR__ . '/../database/migrations/' => database_path('migrations'),
-        ], 'migrations');
+        $this->publishes([__DIR__ . '/../config/tagging.php' => config_path('tagging.php')]);
+        $this->publishes([__DIR__ . '/../database/migrations/' => database_path('migrations')], 'migrations');
     }
 
     /**
@@ -35,9 +31,12 @@ class TaggingServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/tagging.php', 'tagging'
-        );
-        $this->app->bind(Contracts\TagInterface::class, config('tagging.model'));
+        $this->mergeConfigFrom(__DIR__ . '/../config/tagging.php', 'tagging');
+        $translatable = config('tagging.translatable');
+        if ($translatable) {
+            $this->app->bind(Contracts\TagInterface::class, Models\TranslatableTag::class);
+        } else {
+            $this->app->bind(Contracts\TagInterface::class, Models\Tag::class);
+        }
     }
 }

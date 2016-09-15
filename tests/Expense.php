@@ -2,13 +2,11 @@
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Waavi\Tagging\Contracts\TaggableInterface;
 use Waavi\Tagging\Traits\Taggable;
 
-class Expense extends Model implements TaggableInterface
+class Expense extends Model
 {
-    use Taggable;
-    use SoftDeletes;
+    use Taggable, SoftDeletes;
 
     /**
      * The database table used by the model.

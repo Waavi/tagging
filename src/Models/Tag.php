@@ -1,46 +1,71 @@
-<?php namespace Waavi\Tagging\Models;
+<?php
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
+namespace Waavi\Tagging\Models;
+
+use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Model;
 use Waavi\Tagging\Contracts\TagInterface;
-use Waavi\Translation\Traits\Translatable;
 
-class Tag extends Model implements SluggableInterface, TagInterface
+class Tag extends Model implements TagInterface
 {
-    /**
-     * Traits
-     *
-     */
-    use Translatable;
-    use SluggableTrait;
+    use Sluggable;
 
+    /**
+     * @var string
+     */
     protected $table = 'tagging_tags';
 
+    /**
+     * @var array
+     */
     public $fillable = ['name'];
 
-    protected $sluggable = [
-        'build_from' => 'rawName',
-        'save_to'    => 'slug',
-    ];
-
     /**
-     * @param array $attributes
+     * Return the sluggable configuration array for this model.
+     *
+     * @return array
      */
-    public function __construct(array $attributes = [])
+    public function sluggable()
     {
-        if (function_exists('config') and config('tagging.uses_tags_for_different_models')) {
-            $this->fillable            = ['name', 'taggable_type'];
-            $this->sluggable['unique'] = false;
-        }
-        parent::__construct($attributes);
+        return [
+            'slug' => [
+                'source' => 'name',
+                'unique' => true,
+            ],
+        ];
     }
 
     /**
-     *  The following attributes will have translations managed automatically.
-     *  See Translatable Trait
+     *  Mutator for the name attribute
      *
-     *  @var array
+     *  @param  string $value
+     *  @return void
      */
-    protected $translatableAttributes = ['name'];
+    public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = Tag::normalizeTagName($value);
+    }
+
+    /**
+     *  Show only tags belonging to the given class.
+     *
+     *  @param  \Illuminate\Database\Eloquent\Builder $query
+     *  @param  string  $classname
+     *  @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByModel($query, $classname)
+    {
+        return $query->where('taggable_type', $classname);
+    }
+
+    /**
+     *  Normalize a tag name
+     *
+     *  @param  string $tagName
+     *  @return string
+     */
+    public static function normalizeTagName($tagName)
+    {
+        return call_user_func(config('tagging.normalizer'), trim($tagName));
+    }
 }
