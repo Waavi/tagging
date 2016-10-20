@@ -98,9 +98,9 @@ trait Taggable
     public function availableTags()
     {
         return app(TagInterface::class)->join('tagging_taggables', function ($join) {
-            $join->on('tagging_taggable_type', '=', get_class($this))
-                ->on('tagging_tags.id', '=', 'tag_id');
-        })->groupBy('slug')
+            $join->on('tagging_tags.id', '=', 'tag_id');
+        })->where('tagging_taggable_type', '=', get_class($this))
+            ->groupBy('slug')
             ->get()
             ->pluck('name')
             ->toArray();
