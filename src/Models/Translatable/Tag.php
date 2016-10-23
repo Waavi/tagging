@@ -1,10 +1,11 @@
 <?php
 
-namespace Waavi\Tagging\Models;
+namespace Waavi\Tagging\Models\Translatable;
 
+use Waavi\Tagging\Models\Tag as TagModel;
 use Waavi\Translation\Traits\Translatable;
 
-class TranslatableTag extends Tag
+class Tag extends TagModel
 {
     use Translatable;
 
